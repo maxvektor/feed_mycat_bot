@@ -2,7 +2,6 @@ const feeder = require('./feeder');
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('../config');
 const _ = require('lodash');
-const  moment = require('moment');
 
 const COMMANDS = {
     status: 'статус',
@@ -27,8 +26,8 @@ bot.onText(/\/echo (.+)/, function (msg, match) {
     // 'match' is the result of executing the regexp above on the text content
     // of the message
 
-    var chatId = msg.chat.id;
-    var resp = match[1]; // the captured "whatever"
+    const chatId = msg.chat.id;
+    const resp = match[1]; // the captured "whatever"
 
     // send back the matched "whatever" to the chat
     bot.sendMessage(chatId, resp);
@@ -42,17 +41,24 @@ bot.on('message', function (msg) {
     const number = _.get(input.match(/\d+/), '[0]');
     let message;
 
-    if (input.includes(COMMANDS.status)) {
-        message = feeder.getStatus();
-    } else if (input.includes(COMMANDS.clear)) {
-        message = feeder.clear();
-    } else if (number) {
-        message = feeder.feed(Number(number));
-    }
+    const answer = _.partial(bot.sendMessage, chatId);
 
-    console.log(message);
-    // send a message to the chat acknowledging receipt of their message
-    bot.sendMessage(chatId, message);
+    if (input.includes(COMMANDS.status)) {
+        // TODO: _.partial
+        feeder
+            .getStatus()
+            .then(function (result) {
+                console.log(result);
+                bot.sendMessage(chatId, result);
+            });
+    } else if (number) {
+        feeder
+            .feed(Number(number))
+            .then(function (result) {
+                console.log(result);
+                bot.sendMessage(chatId, result);
+            });
+    }
 });
 
 console.log('app is runnig');

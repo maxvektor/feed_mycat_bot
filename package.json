@@ -6,6 +6,7 @@
   "dependencies": {
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
+    "mongoose": "^4.8.1",
     "node-telegram-bot-api": "^0.24.0",
     "pretty-console.log": "^2.0.0"
   },
