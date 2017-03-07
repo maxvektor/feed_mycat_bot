@@ -10,10 +10,6 @@ const COMMANDS = {
     clear: 'очистить'
 };
 
-// pretty console log
-var pcl = require("pretty-console.log");
-pcl.enable();
-
 // replace the value below with the Telegram token you receive from @BotFather
 var token = config.tegramToken;
 
@@ -53,7 +49,7 @@ bot.on('message', function (msg) {
             });
     } else if (number) {
         feeder
-            .feed(Number(number))
+            .feed(Number(number), msg.date)
             .then(function (result) {
                 console.log(result);
                 bot.sendMessage(chatId, result);
