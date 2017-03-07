@@ -4,57 +4,61 @@ const config = require('../config');
 const _ = require('lodash');
 
 const COMMANDS = {
-    status: 'статус',
-    give: 'дать',
-    history: 'история',
+    status: /статус/i,
+    give: /дать (\d+)/gi,
+    history: /история/i,
     clear: 'очистить'
 };
 
 // replace the value below with the Telegram token you receive from @BotFather
-var token = config.tegramToken;
+const token = config.tegramToken;
 
 // Create a bot that uses 'polling' to fetch new updates
-var bot = new TelegramBot(token, {polling: true});
+const bot = new TelegramBot(token, {polling: true});
 
-// Matches "/echo [whatever]"
-bot.onText(/\/echo (.+)/, function (msg, match) {
-    // 'msg' is the received Message from Telegram
-    // 'match' is the result of executing the regexp above on the text content
-    // of the message
-
+bot.onText(COMMANDS.give, function (msg, match) {
     const chatId = msg.chat.id;
-    const resp = match[1]; // the captured "whatever"
+    let amount;
 
-    // send back the matched "whatever" to the chat
-    bot.sendMessage(chatId, resp);
-});
-
-// Listen for any kind of message. There are different kinds of
-// messages.
-bot.on('message', function (msg) {
-    const chatId = msg.chat.id;
-    const input = msg.text.toLowerCase();
-    const number = _.get(input.match(/\d+/), '[0]');
-    let message;
-
-    const answer = _.partial(bot.sendMessage, chatId);
-
-    if (input.includes(COMMANDS.status)) {
-        // TODO: _.partial
+    if (match[1]) {
+        amount = Number(match[1]);
         feeder
-            .getStatus()
+            .feed(Number(amount), msg.date)
             .then(function (result) {
                 console.log(result);
                 bot.sendMessage(chatId, result);
             });
-    } else if (number) {
-        feeder
-            .feed(Number(number), msg.date)
-            .then(function (result) {
-                console.log(result);
-                bot.sendMessage(chatId, result);
-            });
+    } else {
+        bot.sendMessage(chatId, 'Не понятно, сколько дать');
     }
 });
+
+bot.onText(COMMANDS.status, function (msg) {
+    const chatId = msg.chat.id;
+
+    feeder
+        .getStatus()
+        .then(function (result) {
+            console.log(result);
+            bot.sendMessage(chatId, result);
+        });
+});
+
+
+bot.onText(COMMANDS.history, function (msg, match) {
+    const chatId = msg.chat.id;
+    const interval = 24;
+    feeder
+        .getHistory(interval)
+        .then(function (result) {
+            console.log(result);
+            bot.sendMessage(chatId, result);
+        });
+});
+
+bot.on('message', function (msg) {
+    console.log(msg);
+});
+
 
 console.log('app is runnig');
