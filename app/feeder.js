@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const feedingSchema = require('./schemas/feedingSchema');
 const Feeding = mongoose.model('Feeding', feedingSchema);
+const pluralize = require('numeralize-ru').pluralize;
 
 mongoose.connect('mongodb://localhost/db');
 
@@ -34,7 +35,8 @@ module.exports = {
         return Feeding.findToday()
             .then(
                 data => {
-                    return `За сегодня котик съела ${_.sum(_.map(data, 'amount'))} грамм еды.`;
+                    const sum = _.sum(_.map(data, 'amount'));
+                    return `За сегодня котик съела ${sum} ${pluralize(sum, 'грамм', 'грамма', 'грамм')} еды.`;
                 },
                 err => {
                     console.log(err);
@@ -48,15 +50,22 @@ module.exports = {
             .then(
                 data => {
                     if (_.isEmpty(data)) {
-                        return `За последние ${interval}ч котик ничего не ела`
+                        return `За последние ${interval} ${pluralize(interval, 'час', 'часа', 'часов')} `+
+                                `котик ничего не ела`
                     } else {
                         // только не нулевые
-                        const feedings = _.filter(data,'amount');
+                        const feedings = _.filter(data, 'amount');
+                        const sum = _.sum(_.map(data, 'amount'));
+
                         let feedingString = _.map(feedings, function (item) {
-                            return `${moment(item.time).format('Do MMM HH:mm')} - ${item.amount} грамм`
+                            return `${moment(item.time).locale('ru').format('D MMMM HH:mm')} – ` +
+                                `${item.amount} ${pluralize(item.amount, 'грамм', 'грамма', 'грамм')}`
                         }).join('\n');
 
-                        return `За последние ${interval}ч котик ела ${feedings.length} раз: \n\n${feedingString}`;
+                        return `За последние ${interval} ${pluralize(interval, 'час', 'часа', 'часов')} ` +
+                            `котик ела ${feedings.length} ${pluralize(feedings.length, 'раз', 'раза', 'раз')}:`
+                            + `\n\n${feedingString}`
+                            +`\n\nвсего ${sum} ${pluralize(sum, 'грамм', 'грамма', 'грамм')} еды`
                     }
                 },
                 err => {

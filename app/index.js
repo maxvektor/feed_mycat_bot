@@ -2,11 +2,12 @@ const feeder = require('./feeder');
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('../config');
 const _ = require('lodash');
+const console = require('console');
 
 const COMMANDS = {
     status: /статус/i,
-    give: /дать (\d+)/gi,
-    history: /история/i,
+    give: /дать ?(\d+)?/,
+    history: /история ?(\d+)?/,
     clear: 'очистить'
 };
 
@@ -47,7 +48,9 @@ bot.onText(COMMANDS.status, function (msg) {
 
 bot.onText(COMMANDS.history, function (msg, match) {
     const chatId = msg.chat.id;
-    const interval = 24;
+    const interval = match[1] || 24;
+    console.log(match);
+    console.log(interval);
     feeder
         .getHistory(interval)
         .then(function (result) {
@@ -57,8 +60,7 @@ bot.onText(COMMANDS.history, function (msg, match) {
 });
 
 bot.on('message', function (msg) {
-    console.log(msg);
-});
 
+});
 
 console.log('app is runnig');
