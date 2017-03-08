@@ -7,7 +7,7 @@ const feedingSchema = require('./schemas/feedingSchema');
 const Feeding = mongoose.model('Feeding', feedingSchema);
 const pluralize = require('numeralize-ru').pluralize;
 
-mongoose.connect('mongodb://localhost/db');
+mongoose.connect('mongodb://mongo:27017');
 
 module.exports = {
 
