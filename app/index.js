@@ -3,12 +3,14 @@ const TelegramBot = require('node-telegram-bot-api');
 const config = require('../config');
 const _ = require('lodash');
 const console = require('console');
+const version = require('../package.json').version;
 
 const COMMANDS = {
     status: /статус/i,
     give: /дать ?(\d+)?/i,
     history: /история ?(\d+)?/i,
-    clear: /очистить/i
+    clear: /очистить/i,
+    version: /версия/i,
 };
 
 // replace the value below with the Telegram token you receive from @BotFather
@@ -56,6 +58,11 @@ bot.onText(COMMANDS.history, function (msg, match) {
             console.log(result);
             bot.sendMessage(chatId, result);
         });
+});
+
+bot.onText(COMMANDS.version, function (msg, match) {
+    const chatId = msg.chat.id;
+    bot.sendMessage(chatId, version);
 });
 
 bot.on('message', function (msg) {
