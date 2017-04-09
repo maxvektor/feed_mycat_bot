@@ -6,9 +6,9 @@ const console = require('console');
 
 const COMMANDS = {
     status: /статус/i,
-    give: /дать ?(\d+)?/,
-    history: /история ?(\d+)?/,
-    clear: 'очистить'
+    give: /дать ?(\d+)?/i,
+    history: /история ?(\d+)?/i,
+    clear: /очистить/i
 };
 
 // replace the value below with the Telegram token you receive from @BotFather
@@ -44,7 +44,6 @@ bot.onText(COMMANDS.status, function (msg) {
             bot.sendMessage(chatId, result);
         });
 });
-
 
 bot.onText(COMMANDS.history, function (msg, match) {
     const chatId = msg.chat.id;

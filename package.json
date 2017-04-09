@@ -9,6 +9,7 @@
     "mongoose": "^4.8.1",
     "node-telegram-bot-api": "^0.24.0",
     "numeralize-ru": "^1.0.1",
+    "pluralize": "^4.0.0",
     "pretty-console.log": "^2.0.0"
   },
   "devDependencies": {},

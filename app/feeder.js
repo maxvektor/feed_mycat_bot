@@ -2,10 +2,11 @@ const moment = require('moment');
 const fs = require('fs');
 const _ = require('lodash');
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 const feedingSchema = require('./schemas/feedingSchema');
 const Feeding = mongoose.model('Feeding', feedingSchema);
-const pluralize = require('numeralize-ru').pluralize;
+const i18n = require('./i18n');
+
+const locale = process.env.locale || 'ru';
 
 mongoose.connect('mongodb://mongo:27017');
 
@@ -22,11 +23,11 @@ module.exports = {
             .save()
             .then(
                 result => {
-                    return `Покормили. Дали ${result.amount} грамм еды`;
+                    return i18n.compose('CAT_IS_FEEDED', locale, result);
                 },
                 err => {
                     console.log(err);
-                    return `Ошибка: ${err}`
+                    return `Error ${err}`
                 }
             );
     },
@@ -36,7 +37,7 @@ module.exports = {
             .then(
                 data => {
                     const sum = _.sum(_.map(data, 'amount'));
-                    return `За сегодня котик съела ${sum} ${pluralize(sum, 'грамм', 'грамма', 'грамм')} еды.`;
+                    return i18n.compose('FEED_STATUS', locale, {sum});
                 },
                 err => {
                     console.log(err);
@@ -48,24 +49,25 @@ module.exports = {
     getHistory: function (interval) {
         return Feeding.getFeedByInterval(interval)
             .then(
-                data => {
+                models => {
+                    const data = models.map(model => model.toObject());
+
                     if (_.isEmpty(data)) {
-                        return `За последние ${interval} ${pluralize(interval, 'час', 'часа', 'часов')} `+
-                                `котик ничего не ела`
+                        return i18n.compose('FEED_HYSTORY_EMPTY', locale, {interval})
                     } else {
                         // только не нулевые
                         const feedings = _.filter(data, 'amount');
                         const sum = _.sum(_.map(data, 'amount'));
 
-                        let feedingString = _.map(feedings, function (item) {
-                            return `${moment(item.time).locale('ru').format('D MMMM HH:mm')} – ` +
-                                `${item.amount} ${pluralize(item.amount, 'грамм', 'грамма', 'грамм')}`
+                        let feedingString = _.map(feedings, function (feeding) {
+                            return `${i18n.formantDate(feeding.time, locale)} – ${i18n.compose('FOOD_AMOUNT', locale, feeding.amount)}`
                         }).join('\n');
 
-                        return `За последние ${interval} ${pluralize(interval, 'час', 'часа', 'часов')} ` +
-                            `котик ела ${feedings.length} ${pluralize(feedings.length, 'раз', 'раза', 'раз')}:`
-                            + `\n\n${feedingString}`
-                            +`\n\nвсего ${sum} ${pluralize(sum, 'грамм', 'грамма', 'грамм')} еды`
+                        return [
+                            i18n.compose('FEED_HYSTORY', locale, {interval, length: feedings.length}),
+                            feedingString,
+                            `${i18n.compose('FOOD_AMOUNT_SUM', locale, sum)}`
+                        ].join('\n\n')
                     }
                 },
                 err => {
